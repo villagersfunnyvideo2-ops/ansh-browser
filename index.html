@@ -490,6 +490,36 @@
         }
       }
     }
+      <!-- ================================================================= -->
+  <!-- AUTOMATIC IFRAME ERROR FIXER & POPUP LAUNCHER (PASTE AT BOTTOM)  -->
+  <!-- ================================================================= -->
+  <script>
+    (function() {
+      const frame = document.getElementById('browser-frame');
+      if (!frame) return;
+
+      // Error Detection for Iframe Blocking
+      frame.addEventListener('load', function() {
+        try {
+          // Check if iframe content is blocked or empty
+          if (frame.contentWindow.location.href === 'about:blank' && currentRawUrl !== '') {
+            console.warn('Iframe blocked by X-Frame-Options. Redirecting...');
+          }
+        } catch (e) {
+          // Security Restriction caught: Means site loaded or restricted
+        }
+      });
+
+      // Auto Redirect Handler for AppGeyser APK
+      window.handleIframeError = function() {
+        if (currentRawUrl) {
+          // Open in system browser if iframe fails
+          window.open(currentRawUrl, '_system');
+        }
+      };
+    })();
+  </script>
+
   </script>
 </body>
 </html>
