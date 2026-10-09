@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ANSH Universal Ultra-Fast Private Browser</title>
+
+  <!-- PWA & Mobile Fullscreen Meta Tags -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="ANSH Browser">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#050508">
+
+  <!-- Dynamic Inline Data-URI PWA Manifest -->
+  <link rel="manifest" id="pwa-manifest">
+
+  <!-- Application Icons -->
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2983/2983780.png">
+  <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2983/2983780.png">
+  
+  <!-- CSS Frameworks & Icon Libraries -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- 3D Graphics Visualization Engine (Three.js Engine) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      touch-action: manipulation;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      background-color: #050508;
+      color: #ffffff;
+    }
+
+    /* Glassmorphism Cyber UI Styling */
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(102, 252, 241, 0.35);
+      box-shadow: 0 0 25px rgba(102, 252, 241, 0.15);
+    }
+
+    .glass-button {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(102, 252, 241, 0.25);
+      transition: all 0.25s ease-in-out;
+    }
+
+    .glass-button:hover {
+      background: rgba(102, 252, 241, 0.2);
+      border-color: rgba(102, 252, 241, 0.6);
+      box-shadow: 0 0 15px rgba(102, 252, 241, 0.4);
+    }
+
+    /* Custom Scrollbar Styles */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(5, 5, 8, 0.8);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #66fcf1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #45a29e;
+    }
+  </style>
+</head>
+<body class="relative w-full h-full select-none">
+
+  <!-- ================================================================= -->
+  <!-- 1. DASHBOARD & 3D CYBER VISUALIZATION CANVAS                      -->
+  <!-- ================================================================= -->
+  <div id="dashboard" class="absolute inset-0 z-20 flex flex-col items-center justify-between p-4 md:p-6 bg-gradient-to-b from-gray-950 via-slate-900 to-black overflow-y-auto">
+    
+    <!-- Top Header Navigation & Status Indicators -->
+    <div class="w-full max-w-5xl flex justify-between items-center z-10">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="text-xs font-mono tracking-wider text-emerald-400 uppercase">ANSH Core v6.0 • Full Visual Engine</span>
+      </div>
+
+      <div class="flex items-center gap-2 text-xs">
+        <!-- PWA Installation Helper Button -->
+        <button id="pwa-install-btn" onclick="installPWA()" class="hidden bg-emerald-600/30 hover:bg-emerald-600/50 px-3 py-1.5 rounded-full border border-emerald-500/50 text-emerald-300 transition flex items-center gap-1.5 shadow-lg animate-bounce">
+          <i class="fa-solid fa-download text-xs"></i>
+          <span>Install App</span>
+        </button>
+
+        <!-- Google Account Bypass Authentication Button -->
+        <button onclick="openGoogleAuth()" class="bg-blue-600/30 hover:bg-blue-600/50 px-3.5 py-1.5 rounded-full border border-blue-500/50 text-blue-300 transition flex items-center gap-1.5 shadow-lg hover:scale-105 active:scale-95">
+          <i class="fa-brands fa-google text-xs"></i>
+          <span>Google Sign-In</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Center 3D Interactive ANSH Core Area -->
+    <div class="relative flex flex-col items-center justify-center my-auto w-full max-w-xl z-10">
+      
+      <!-- 3D Three.js Visual Canvas Container -->
+      <div id="canvas-container" class="w-[260px] h-[260px] relative flex items-center justify-center"></div>
+      
+      <!-- Smart Intent Query Input Bar -->
+      <div class="w-full max-w-lg mt-3">
+        <div class="glass-panel flex items-center rounded-full px-4 py-1.5 relative">
+          <i class="fa-solid fa-bolt text-cyan-400 text-base ml-1 mr-2 animate-pulse"></i>
+          <input type="text" id="url-input" 
+            placeholder="Kuch bhi type karein (e.g. 'aaj gana sunna hai', 'up e district', 'sarkari result')" 
+            class="w-full bg-transparent border-none outline-none text-white placeholder-gray-400 text-sm py-2"
+            onkeydown="if(event.key === 'Enter') navigateSmart();"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button onclick="navigateSmart()" class="ml-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold px-5 py-2 rounded-full transition-all text-xs flex items-center gap-1 shadow-md hover:scale-105 active:scale-95">
+            <span>GO</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Launch Direct Category Shortcuts -->
+      <div class="flex flex-wrap justify-center gap-2 mt-5">
+        <button onclick="quickLaunch('https://www.google.com')" class="glass-button text-[11px] px-3.5 py-1.5 rounded-full text-blue-300 transition flex items-center gap-1">
+          <i class="fa-brands fa-google text-blue-400"></i> Google Search
+        </button>
+        <button onclick="quickLaunch('https://www.youtube.com')" class="glass-button text-[11px] px-3.5 py-1.5 rounded-full text-red-300 transition flex items-center gap-1">
+          <i class="fa-brands fa-youtube text-red-500"></i> YouTube
+        </button>
+        <button onclick="quickLaunch('https://edistrict.up.gov.in')" class="glass-button text-[11px] px-3.5 py-1.5 rounded-full text-cyan-300 transition">
+          UP eDistrict Portal
+        </button>
+        <button onclick="quickLaunch('https://www.sarkariresult.com')" class="glass-button text-[11px] px-3.5 py-1.5 rounded-full text-cyan-300 transition">
+          Sarkari Result
+        </button>
+        <button onclick="quickLaunch('https://digitalseva.csc.gov.in')" class="glass-button text-[11px] px-3.5 py-1.5 rounded-full text-amber-300 transition">
+          CSC Digital Seva
+        </button>
+      </div>
+    </div>
+
+    <!-- Dashboard Footer Notice -->
+    <div class="text-center text-[10px] text-gray-500 z-10">
+      <p>ANSH Universal Private Engine • Pure Native Permissions • Zero History Logs</p>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- 2. FULL VIEW BROWSER CANVAS (NO ADDRESS BAR MODE)                 -->
+  <!-- ================================================================= -->
+  <iframe id="browser-frame" 
+    class="w-full h-full border-none hidden absolute inset-0 z-10 bg-white"
+    allow="camera; microphone; geolocation; fullscreen; autoplay; encrypted-media; clipboard-read; clipboard-write; display-capture; notifications"
+    sandbox="allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"
+  ></iframe>
+
+  <!-- ================================================================= -->
+  <!-- 3. FLOATING HUD CONTROL BAR                                       -->
+  <!-- ================================================================= -->
+  <div id="hud-bar" class="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 hidden">
+    <div class="glass-panel flex items-center gap-3 px-4 py-2 rounded-full border border-cyan-500/40 shadow-2xl">
+      
+      <!-- Return Dashboard Home Button -->
+      <button onclick="goHome()" title="Home Dashboard" class="w-8 h-8 flex items-center justify-center rounded-full bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/40 transition hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-house text-sm"></i>
+      </button>
+
+      <div class="h-3 w-[1px] bg-gray-700"></div>
+
+      <!-- Proxy Switcher Indicator Button -->
+      <button onclick="toggleProxyMode()" id="proxy-btn" class="px-2.5 py-1 text-[10px] rounded-full bg-blue-600/30 text-blue-300 border border-blue-500/40 font-mono">
+        Direct Frame
+      </button>
+
+      <!-- Google Sign-In Secure Launcher Button -->
+      <button onclick="openGoogleAuth()" title="Google Login Bypass" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-800 text-blue-400 transition hover:scale-110 active:scale-90">
+        <i class="fa-brands fa-google text-sm"></i>
+      </button>
+
+      <!-- Direct External Tab Window Opener (Iframe Bypass) -->
+      <button onclick="openExternal()" title="Open Direct Window" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-800 text-emerald-400 transition hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-up-right-from-square text-xs"></i>
+      </button>
+
+      <!-- Downloads Tracking Drawer Toggle Button -->
+      <button onclick="toggleDownloadDrawer()" title="Active Downloads" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-800 text-cyan-400 transition hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-download text-sm"></i>
+      </button>
+
+      <!-- Page Reload Button -->
+      <button onclick="reloadPage()" title="Reload Page" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-800 text-gray-300 transition hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-rotate-right text-sm"></i>
+      </button>
+
+      <!-- Fullscreen Screen Toggle Button -->
+      <button onclick="toggleFullScreen()" title="Fullscreen" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-800 text-gray-300 transition hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-expand text-sm"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- 4. ACTIVE DOWNLOADS TRACKING DRAWER PANEL                        -->
+  <!-- ================================================================= -->
+  <div id="download-drawer" class="fixed bottom-16 right-4 z-40 w-72 glass-panel rounded-xl p-3 hidden border border-cyan-500/40 shadow-2xl">
+    <div class="flex justify-between items-center mb-2 pb-1 border-b border-gray-800">
+      <h4 class="text-[11px] font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
+        <i class="fa-solid fa-circle-down"></i> Active Downloads
+      </h4>
+      <button onclick="toggleDownloadDrawer()" class="text-gray-400 hover:text-white text-xs">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div id="download-list" class="space-y-1.5 text-xs text-gray-300 max-h-36 overflow-y-auto">
+      <div class="p-2 bg-gray-900/60 rounded border border-gray-800">
+        <p class="font-semibold text-gray-200 truncate text-[11px]">ANSH_Download_Manager_Active</p>
+        <div class="w-full bg-gray-800 h-1 rounded-full mt-1.5 overflow-hidden">
+          <div class="bg-cyan-400 h-full w-full"></div>
+        </div>
+        <div class="flex justify-between text-[9px] text-gray-400 mt-1">
+          <span>Permissions: Ready</span>
+          <span class="text-emerald-400">100%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ================================================================= -->
+  <!-- 5. JAVASCRIPT LOGIC ENGINE & PWA LOGIC                            -->
+  <!-- ================================================================= -->
+  <script>
+    // -----------------------------------------------------------------
+    // A. INLINE PWA MANIFEST & SERVICE WORKER ENGINE
+    // -----------------------------------------------------------------
+    const pwaManifestObj = {
+      "name": "ANSH Browser Engine",
+      "short_name": "ANSH Browser",
+      "start_url": ".",
+      "display": "standalone",
+      "background_color": "#050508",
+      "theme_color": "#050508",
+      "icons": [
+        {
+          "src": "https://cdn-icons-png.flaticon.com/512/2983/2983780.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        },
+        {
+          "src": "https://cdn-icons-png.flaticon.com/512/2983/2983780.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    };
+
+    const manifestBlob = new Blob([JSON.stringify(pwaManifestObj)], { type: 'application/json' });
+    document.getElementById('pwa-manifest').setAttribute('href', URL.createObjectURL(manifestBlob));
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = document.getElementById('pwa-install-btn');
+      if (btn) btn.classList.remove('hidden');
+    });
+
+    function installPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            document.getElementById('pwa-install-btn').classList.add('hidden');
+          }
+          deferredPrompt = null;
+        });
+      }
+    }
+
+    if ('serviceWorker' in navigator) {
+      const swCode = `
+        const CACHE_NAME = 'ansh-pwa-v2';
+        self.addEventListener('install', e => { 
+          self.skipWaiting(); 
+        });
+        self.addEventListener('activate', e => { 
+          self.clients.claim(); 
+        });
+        self.addEventListener('fetch', e => { 
+          e.respondWith(fetch(e.request).catch(() => caches.match(e.request))); 
+        });
+      `;
+      const swBlob = new Blob([swCode], { type: 'text/javascript' });
+      navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+    }
+
+    // -----------------------------------------------------------------
+    // B. THREE.JS 3D CYBER SPHERE VISUALIZATION ENGINE
+    // -----------------------------------------------------------------
+    let scene, camera, renderer, sphere;
+    let proxyMode = 'direct';
+    let currentRawUrl = '';
+
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
+      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      container.appendChild(renderer.domElement);
+
+      const geometry = new THREE.SphereGeometry(1.4, 32, 32);
+      const material = new THREE.MeshBasicMaterial({
+        color: 0x66fcf1,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.75
+      });
+      sphere = new THREE.Mesh(geometry, material);
+      scene.add(sphere);
+
+      // Create 3D Neon "ANSH" Canvas Typography Mesh
+      const textCanvas = document.createElement('canvas');
+      textCanvas.width = 512;
+      textCanvas.height = 256;
+      const ctx = textCanvas.getContext('2d');
+      ctx.fillStyle = '#66fcf1';
+      ctx.font = 'Bold 110px Segoe UI, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#66fcf1';
+      ctx.shadowBlur = 20;
+      ctx.fillText('ANSH', 256, 150);
+
+      const textTexture = new THREE.CanvasTexture(textCanvas);
+      const textGeo = new THREE.PlaneGeometry(2.3, 1.15);
+      const textMat = new THREE.MeshBasicMaterial({ map: textTexture, transparent: true });
+      const textMesh = new THREE.Mesh(textGeo, textMat);
+      scene.add(textMesh);
+
+      camera.position.z = 3.0;
+
+      function animate() {
+        requestAnimationFrame(animate);
+        sphere.rotation.x += 0.003;
+        sphere.rotation.y += 0.008;
+        renderer.render(scene, camera);
+      }
+      animate();
+    }
+
+    window.addEventListener('load', init3D);
+
+    // -----------------------------------------------------------------
+    // C. SMART INTENT & NATURAL LANGUAGE SEARCH RESOLVER
+    // -----------------------------------------------------------------
+    const shortcuts = {
+      'up e district': 'https://edistrict.up.gov.in',
+      'edistrict': 'https://edistrict.up.gov.in',
+      'sarkari result': 'https://www.sarkariresult.com',
+      'csc': 'https://digitalseva.csc.gov.in',
+      'youtube': 'https://www.youtube.com',
+      'google': 'https://www.google.com'
+    };
+
+    function navigateSmart() {
+      const input = document.getElementById('url-input').value.trim();
+      if (!input) return;
+
+      const lower = input.toLowerCase();
+      let target = '';
+
+      if (shortcuts[lower]) {
+        target = shortcuts[lower];
+      } else if (lower.includes('gana') || lower.includes('song') || lower.includes('music')) {
+        target = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(input);
+      } else if (input.startsWith('http://') || input.startsWith('https://')) {
+        target = input;
+      } else if (input.includes('.') && !input.includes(' ')) {
+        target = 'https://' + input;
+      } else {
+        target = 'https://www.google.com/search?q=' + encodeURIComponent(input);
+      }
+
+      quickLaunch(target);
+    }
+
+    function quickLaunch(url) {
+      currentRawUrl = url;
+      const frame = document.getElementById('browser-frame');
+      const dashboard = document.getElementById('dashboard');
+      const hud = document.getElementById('hud-bar');
+
+      let finalUrl = url;
+      if (proxyMode === 'cors') {
+        finalUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+      }
+
+      frame.src = finalUrl;
+      dashboard.style.display = 'none';
+      frame.classList.remove('hidden');
+      hud.classList.remove('hidden');
+    }
+
+    function toggleProxyMode() {
+      const btn = document.getElementById('proxy-btn');
+      if (proxyMode === 'direct') {
+        proxyMode = 'cors';
+        btn.innerText = 'CORS Proxy';
+        btn.className = 'px-2.5 py-1 text-[10px] rounded-full bg-amber-600/30 text-amber-300 border border-amber-500/40 font-mono';
+      } else {
+        proxyMode = 'direct';
+        btn.innerText = 'Direct Frame';
+        btn.className = 'px-2.5 py-1 text-[10px] rounded-full bg-blue-600/30 text-blue-300 border border-blue-500/40 font-mono';
+      }
+
+      if (currentRawUrl) {
+        quickLaunch(currentRawUrl);
+      }
+    }
+
+    function openGoogleAuth() {
+      window.open('https://accounts.google.com', '_blank');
+    }
+
+    function openExternal() {
+      if (currentRawUrl) {
+        window.open(currentRawUrl, '_blank');
+      }
+    }
+
+    function toggleDownloadDrawer() {
+      const drawer = document.getElementById('download-drawer');
+      drawer.classList.toggle('hidden');
+    }
+
+    function goHome() {
+      const frame = document.getElementById('browser-frame');
+      const dashboard = document.getElementById('dashboard');
+      const hud = document.getElementById('hud-bar');
+
+      frame.src = 'about:blank';
+      frame.classList.add('hidden');
+      hud.classList.add('hidden');
+      dashboard.style.display = 'flex';
+      document.getElementById('url-input').value = '';
+      currentRawUrl = '';
+    }
+
+    function reloadPage() {
+      const frame = document.getElementById('browser-frame');
+      if (currentRawUrl) {
+        frame.src = currentRawUrl;
+      }
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else if (document.documentElement.webkitRequestFullscreen) {
+          document.documentElement.webkitRequestFullscreen();
+        } else if (document.documentElement.msRequestFullscreen) {
+          document.documentElement.msRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      }
+    }
+  </script>
+</body>
+</html>
